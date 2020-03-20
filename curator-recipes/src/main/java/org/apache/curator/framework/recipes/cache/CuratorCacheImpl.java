@@ -41,11 +41,12 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import static org.apache.curator.framework.recipes.cache.CuratorCacheAccessor.parentPathFilter;
 import static org.apache.curator.framework.recipes.cache.CuratorCacheListener.Type.*;
 import static org.apache.zookeeper.KeeperException.Code.NONODE;
 import static org.apache.zookeeper.KeeperException.Code.OK;
 
-class CuratorCacheImpl implements CuratorCache
+class CuratorCacheImpl implements CuratorCache, CuratorCacheBridge
 {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final AtomicReference<State> state = new AtomicReference<>(State.LATENT);
@@ -124,6 +125,12 @@ class CuratorCacheImpl implements CuratorCache
     public Stream<ChildData> stream()
     {
         return storage.stream();
+    }
+
+    @Override
+    public Stream<ChildData> streamRootChildren()
+    {
+        return storage.stream().filter(parentPathFilter(path));
     }
 
     @VisibleForTesting
